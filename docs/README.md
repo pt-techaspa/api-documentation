@@ -311,7 +311,7 @@ Note, that at the moment HTTP 400 may occur also for 3rd party reasons - e.g. be
 
 ### Email refunds (deprecated)
 
-Email refunds are deprecated, please use `/payments/{transactionId}/refund` endpoint with the customer’s email.
+**Note:** Email refunds are deprecated, please use [`/payments/{transactionId}/refund`](#refund) endpoint with the customer’s email.
 
 `HTTP POST /payments/{transactionId}/refund/email` email refunds a payment by transaction ID.
 
@@ -1080,10 +1080,11 @@ These URLs must use HTTPS.
 
 ##### Commission
 
-| Field    | Type    | Required           | Example | Description                                                                                   |
-| -------- | ------- | ------------------ | ------- | --------------------------------------------------------------------------------------------- |
-| merchant | string  | <center>x</center> | 695874  | Merchant who gets the commission                                                              |
-| amount   | integer | <center>x</center> | 250     | Amount of commission in currency's minor units, e.g. for Euros use cents. VAT not applicable. |
+| Field         | Type    | Required           | Example | Description                                                                                                                                  |
+| ------------- | ------- | ------------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| merchant      | string  | <center>x</center> | 695874  | Merchant who gets the commission                                                                                                             |
+| amount        | integer | <center>x</center> | 250     | Amount of commission in currency's minor units, e.g. for Euros use cents. VAT not applicable.                                                |
+| vatPercentage | integer | <center></center>  | 25.5    | Commissions VAT percentage. Values between 0 and 100 are allowed with one number in decimal part. If not given, 25.5 will be used as default |
 
 See [an example payload and response](/examples#create)
 
