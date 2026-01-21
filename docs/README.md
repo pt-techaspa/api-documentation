@@ -311,7 +311,7 @@ Note, that at the moment HTTP 400 may occur also for 3rd party reasons - e.g. be
 
 ### Email refunds (deprecated)
 
-Email refunds are deprecated, please use `/payments/{transactionId}/refund` endpoint with the customer’s email.
+**Note:** Email refunds are deprecated, please use [`/payments/{transactionId}/refund`](#refund) endpoint with the customer’s email.
 
 **Note!** This function is outdated. A separate email refund action is not needed. Include the customer's email in the [refund payment request](#refund-payment), and the system will handle the email automatically.
 
