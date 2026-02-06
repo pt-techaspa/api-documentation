@@ -6,7 +6,7 @@ Paytrail Payment API has been released on October 5th 2021 and it has replaced a
 
 ### Migrating from Checkout PSP API
 
-Checkout PSP API is deprecated. The old PSP API will be available for some time, but all new development is done solely on the Paytrail Payment API.
+Checkout PSP API is deprecated. The Checkout API will be shut down on 30th of June 2026.
 
 Migration from the Checkout Finland's current PSP API is easy and only small changes are required which are described below.
 
