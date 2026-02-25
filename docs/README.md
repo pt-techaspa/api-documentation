@@ -1055,7 +1055,7 @@ General API HTTP status codes and what to expect of them.
 | email       | string | <center>x</center> | john.doe@example.org | Email. Maximum of 200 characters.                                       |
 | firstName   | string | <center>-</center> | John                 | First name (required for OPLasku and Walley). Maximum of 50 characters. |
 | lastName    | string | <center>-</center> | Doe                  | Last name (required for OPLasku and Walley). Maximum of 50 characters.  |
-| phone       | string | <center>-</center> | 358451031234         | Phone number                                                            |
+| phone       | string | <center>-</center> | 358451031234         | Phone number. Maximum of 30 characters.                                 |
 | vatId       | string | <center>-</center> | FI02454583           | VAT ID, if any                                                          |
 | companyName | string | <center>-</center> | Example company      | Company name, if any. Maximum of 100 characters.                        |
 
