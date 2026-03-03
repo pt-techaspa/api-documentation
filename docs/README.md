@@ -454,6 +454,125 @@ if (applePayButton.canMakePayment()) {
 
 _**Note:** The callback given to `mount()` is called on a successful payment, and is called with the merchants (your) Paytrail success redirect url. You can customize the actions after a successful payment. The example callback above will redirect the user to the success url after 1.5 seconds, to give time for the Apple Pay modal success-animation to finish._
 
+## Klarna
+
+For a comprehensive guide on optimizing your integration and boosting sales, please refer to [Klarna's dedicated Paytrail documentation](https://docs.klarna.com/acquirer/paytrail/get-started/ecosystem-overview/?utm_source=paytrail-docs).
+
+For operational topics such as dispute handling, accessing the Klarna Partner Portal, and configuring payment methods, please visit the [Paytrail Help Center](https://support.paytrail.com/hc/en-us/sections/40564512581009-Klarna).
+
+### Payments
+
+#### Standard Integration
+
+The standard Paytrail integration for Klarna doesn't require any Klarna-specific API calls. Payments are created using the normal **Create payment** API.
+
+Klarna also supports **manual invoice activation (capture)**; see [Invoices](#invoices).
+
+
+For payment reference and examples, see:
+
+- [Create](#create)
+- [List providers](#list-providers)
+
+**How to present Klarna when you don't use Klarna Web SDK**
+
+Klarna is shown either on the Paytrail hosted payment page or as a selectable payment method when rendering payment buttons in your store.
+
+The Klarna payment option is returned as part of the standard payment method response in the credit [PaymentMethodGroup](#paymentmethodgroup).
+
+#### Share customer data to increase conversion rates
+
+Always share as much payment information as possible with Klarna. This is crucial for improving session continuity, enabling personalization, and increasing conversion rates. It also helps accelerate customer authentication, ensure consistency across all touchpoints, and streamline reconciliation and dispute management:
+
+- Customer first and last name
+- Customer email address
+- Reference
+- Items
+- Invoicing address
+- Delivery address
+- Klarna Network Session Token
+- Klarna Network Data
+
+**Klarna Network Session Token:** When customers interact with Klarna's [Conversion features](#conversion-features), Klarna Web SDK returns a Klarna Network Session Token.
+
+In such cases, when the Klarna Network Session Token is present, you must collect this token and share it in [Klarna provider details](#klarna-provider-details) under the `providerDetails` object when creating the payment session with Paytrail. This is required for session continuity, personalization, and improved conversion rates. Note that Paytrail simply passes the token along; it's your responsibility to obtain and handle it.
+
+Sharing the `klarna.networkSessionToken` is required with the Conversion features.
+
+**Klarna Network Data:** You can also send `klarna.networkData` in the `providerDetails` object as a serialized JSON. This enriched data helps increase approval rates and reduce false declines by enabling Klarna to make smarter decisions. Providing complete and accurate data improves acceptance rates. For more details, refer to Klarna's [Optimize Conversion Rate](https://docs.klarna.com/acquirer/paytrail/get-started/maximize-sales-with-klarna/optimize-conversion-rate/?utm_source=paytrail-docs) documentation and also check [Klarna Network Data Schema](https://docs.klarna.com/acquirer/paytrail/api/klarna-network-data-schema/?utm_source=paytrail-docs).
+
+
+Example:
+
+```json
+{
+  "stamp": "29858472953",
+  "reference": "9187445",
+  "amount": 1590,
+  "...",
+  "providerDetails": {
+    "klarna": {
+      "networkSessionToken": "krn:network:eu1:live:session-token:eyJhbGciOiJFU...",
+      "networkData": "{\"content_type\": \"application/vnd.klarna.example+json\",\"content\": ...}",
+      }
+  }
+}
+
+```
+
+#### Klarna provider details
+
+| Field               | Type   | Required           | Example / constraints         | Description                                                                 |
+| ------------------- | ------ | ------------------ | ----------------------------- | --------------------------------------------------------------------------- |
+| networkSessionToken | string | <center>x</center> | Min length 1, max length 8192 | Klarna Network Session Token from the Web SDK (Conversion features). |
+| networkData         | string | <center>x</center> | Min length 1, max length 10240 | Optional serialized JSON; enriched data to improve approval rates. |
+
+
+#### Highest-converting Klarna Integration
+Integrate Klarna's Web SDK to deliver a seamless, optimized checkout experience on your site. Initialize the SDK, present Klarna in the payment selector, and finalize the flow with Klarna's payment button. You will also utilize the same Klarna Web SDK for [Conversion features](#conversion-features).
+
+Refer to the Klarna documentation for [Implementing Klarna Web SDK](https://docs.klarna.com/acquirer/paytrail/recommended-integration/build-the-checkout/klarna-websdk/?utm_source=paytrail-docs).
+
+### Presenting Klarna
+
+Integrate Klarna into your checkout by following Klarna's branding and messaging guidelines to optimize the customer journey and maximize conversions.
+
+Refer to the Klarna documentation for [Presenting Klarna in your checkout](https://docs.klarna.com/acquirer/paytrail/recommended-integration/klarna-in-your-checkout/?utm_source=paytrail-docs) and [Checkout form overview](https://docs.klarna.com/acquirer/paytrail/recommended-integration/build-the-checkout/overview/?utm_source=paytrail-docs).
+
+### Conversion features
+
+You can implement Klarna's [Conversion features](https://docs.klarna.com/acquirer/paytrail/additional-features/partner-portal/conversion-boosters/?utm_source=paytrail-docs) with your payments. These features should be implemented directly on your online store using the guidelines provided in Klarna Docs and the Klarna Partner Portal:
+
+- [Klarna Express Checkout](https://docs.klarna.com/acquirer/paytrail/express-checkout/integration-prerequisites/?utm_source=paytrail-docs)
+- [On-site Messaging](https://docs.klarna.com/acquirer/paytrail/on-site-messaging/integration-prerequisites/?utm_source=paytrail-docs)
+- [Sign in with Klarna](https://docs.klarna.com/acquirer/paytrail/sign-in-with-klarna/integration-prerequisites/?utm_source=paytrail-docs)
+
+For Conversion features, make sure to add the `klarna_network_session_token` returned by the Klarna Web SDK to the `providerDetails.klarna.networkSessionToken` field in Paytrail's `/payments` call.
+
+Alternative to the `/payments` endpoint, you can also utilize two other dedicated endpoints for Klarna:
+- `/payments/klarna/charge` (for auto-capture)
+- `/payments/klarna/authorization-hold` (for manual capture)
+
+Using one of these endpoints instead of the `/payments` endpoint helps create a faster checkout experience for your customers by shortening API response times and eliminating unnecessary redirection to a payment link when it's not required.
+
+With these endpoints, you can use the exact same request body you already have for the `/payments` endpoint, however, their response would be different than `/payments`.
+
+If `/payments/klarna/charge` or `/payments/klarna/authorization-hold` is successful, `HTTP 201` and the `transactionId` of the payment is directly returned. This means that the information provided with the `klarna.networkSessionToken` was sufficient to finalize the payment, so no further action is needed from the customer. You can then proceed to create the order in your system.
+
+If the customer still needs to get redirected to take further action about the payment, `HTTP 403` along with the `transactionId` and `stepUpUrl` is returned. In this case, redirect the customer to the `stepUpUrl`, so that they can complete their purchase:
+
+```json
+{
+  "transactionId": "8772e75a-7439-........-c0b5a7184fc4",
+  "stepUpUrl": "https://pay.klarna.com/eu/requests/53bc0e65-........-90d3-48cd2378031f/start",
+  "error": "Step-up required"
+}
+```
+
+If you prefer to use `/payments/klarna/authorization-hold`;
+- to capture the authorization, you need to call `/payments/{transactionId}/klarna/commit`
+- to void (cancel) the authorization, you need to call `/payments/{transactionId}/klarna/revert`
+
 ## Token payments
 
 Paytrail provides an API for tokenizing payment cards and issuing payments on those tokenized payment cards.
@@ -763,19 +882,50 @@ If the flow fails due to issues with the card itself (insufficient funds, fraud 
 
 ## Invoices
 
-### Manually activating invoices
+### Manually activating payments
 
-Paytrail provides customer an option to pay with invoice. For certain invoice payment methods (currently only Walley), it is possible to activate the invoice manually later. This can be used for example with preordered products.
+For certain payment methods (Klarna and Walley B2C/B2B), you can activate the payment at a later time, for example for pre-ordered products.
+Activation window:
 
-Walley will keep the incvoice open for a maximum of 90 days. An invoice **cannot** be activated after this 90 day period.
+- Klarna: up to 28 days
+- Walley: up to 90 days
 
-#### Payment creation to pending status
+After this time, the payment **can no** longer be activated.
 
-Payment needs to be created with the `manualInvoiceActivation` flag set to true. If paid with invoice, the payment will be left to `pending` status and invoice will not be activated automatically.
+#### Creating payments with pending status
 
-#### Activating invoice
+Set the `manualInvoiceActivation` flag to true. New payment is set to `pending` state.
+If the payment is made with unsupported providers, this flag is ignored.
 
-`HTTP POST /payments/{transactionId}/activate-invoice` manually activates invoice by transaction ID. Can only be used if payment was paid with Walley, is in pending status and the payment was created within 90 days of the activation call.
+- with Klarna, an authorization hold is made for the amount and is kept for the maximum duration of activation window.
+- with Walley, no authorization hold is made.
+
+Refer to [create payment request body section](#create-payment)
+
+```json
+{
+  "stamp": "29858472953",
+  "reference": "9187445",
+  "amount": 1590,
+  "currency": "EUR",
+  "language": "FI",
+  "manualInvoiceActivation": true
+  "..."
+}
+```
+
+### Capturing payments
+
+!> Updated endpoint! Old endpoint remains functional but all new integrations should use the new endpoint.
+
+`HTTP POST /payments/{transactionId}/capture-order` manually activates invoice by transaction ID.
+
+Deprecated endpoint `HTTP POST /payments/{transactionId}/activate-invoice`
+
+Sending a capture-order request changes the payment status to `accepted` and:
+
+- With Klarna, issues a charge for the authorization hold
+- With Walley, activates the invoice
 
 ##### Request
 
@@ -783,7 +933,40 @@ No request body required.
 
 ##### Response
 
-Activation will return `HTTP 200` when successful.
+Capture will return `HTTP 200` when successful.
+
+| field   | type   | description                                   |
+| ------- | ------ | --------------------------------------------- |
+| status  | string | Status of activation. `ok` or `error`         |
+| message | string | Response details, eg. detailed error message. |
+
+### Cancelling payment
+
+!> Relevant for Klarna payment method only, and only for payments made with `manualInvoiceActivation`. If you're looking to make a refund, please refer to [refund](#Refund) section.
+
+`HTTP POST /payments/{transactionId}/cancel-order` cancels the payment and releases any authorization holds made.
+
+Klarna payments made requiring manual invoice activation are going to be cancelled automatically after the activation window expires.
+
+With `manualInvoiceActivation` you are issuing an authorization hold for the amount. It is advised to issue a cancel for the payment as soon as you know you are going to do so, even though this is an automatic operation at the end of expiry window.
+
+##### Request
+
+No request body required.
+
+##### Response
+
+Cancel will return `HTTP 201` when successful, or `HTTP 202` when request is received but response to cancellation cannot be given right away.
+
+| Status code | Explanation                                                                           |
+| ----------- | ------------------------------------------------------------------------------------- |
+| 201         | Invoice cancelled                                                                     |
+| 202         | Invoice cancellation requested, status of the payment will be updated asynchronously. |
+| 200         | Invoice already cancelled.                                                            |
+| 400         | Invalid request. Refer to body.message for more information                           |
+| 500         | Other error. Refer to body.message for more information                               |
+
+###### Body
 
 | field   | type   | description                                   |
 | ------- | ------ | --------------------------------------------- |
@@ -1025,12 +1208,13 @@ General API HTTP status codes and what to expect of them.
 | customer                | [Customer](#customer-1)                     | <center>x</center> | Customer information                                                                                                                                                                                                                                                                                                                                                                                     |
 | deliveryAddress         | [Address](#address)                         | <center>-</center> | Delivery address                                                                                                                                                                                                                                                                                                                                                                                         |
 | invoicingAddress        | [Address](#address)                         | <center>-</center> | Invoicing address                                                                                                                                                                                                                                                                                                                                                                                        |
-| manualInvoiceActivation | boolean                                     | <center>-</center> | If paid with invoice payment method, the invoice will not be activated automatically immediately. Currently only supported with Walley.                                                                                                                                                                                                                                                                  |
+| manualInvoiceActivation | boolean                                     | <center>-</center> | If paid with invoice payment method, the invoice will not be activated automatically immediately. Supported with Walley and Klarna.                                                                                                                                                                                                                                                                      |
 | redirectUrls            | [CallbackUrl](#callbackurl)                 | <center>x</center> | Where to redirect browser after a payment is paid or cancelled. A single redirect URL can have maximum of 300 characters.                                                                                                                                                                                                                                                                                |
 | callbackUrls            | [CallbackUrl](#callbackurl)                 | <center>-</center> | Which url to ping after this payment is paid or cancelled.                                                                                                                                                                                                                                                                                                                                               |
 | callbackDelay           | number                                      | <center>-</center> | Callback URL polling delay in seconds. If callback URLs are given, the call can be delayed up to 900 seconds. Default: 0                                                                                                                                                                                                                                                                                 |
 | groups                  | [PaymentMethodGroup](#paymentmethodgroup)[] | <center>-</center> | Instead of all enabled payment methods, return only those of given groups. It is highly recommended to use [list providers](#list-providers) before initiating the payment if filtering by group. If the payment methods are rendered in the webshop the grouping functionality can be implemented based on the `group` attribute of each returned payment instead of filtering when creating a payment. |
 | usePricesWithoutVat     | boolean                                     | <center>-</center> | If true, `amount` and `items.unitPrice` should be sent to API not including VAT, and final amount is calculated by Paytrail's system using the items' `unitPrice` and `vatPercentage` (with amounts rounded to closest cent). Also, when true, **items must be included** and all item unit prices must be positive.                                                                                     |
+| providerDetails         | [ProviderDetails](#providerdetails)         | <center>-</center> | Pass properties to payment methdos that support additional functionality. Content depends on payment method used.                                                                                                                                                                                                                                                                                        |
 
 ##### Item
 
@@ -1087,6 +1271,12 @@ These URLs must use HTTPS.
 | amount        | integer | <center>x</center> | 250     | Amount of commission in currency's minor units, e.g. for Euros use cents. VAT not applicable.                                                |
 | vatPercentage | integer | <center></center>  | 25.5    | Commissions VAT percentage. Values between 0 and 100 are allowed with one number in decimal part. If not given, 25.5 will be used as default |
 
+##### ProviderDetails
+
+| Field  | Type                                              | Required           | Example | Description                        |
+| ------ | ------------------------------------------------- | ------------------ | ------- | ---------------------------------- |
+| klarna | [KlarnaProviderDetails](#Klarna-provider-details) | <center>-</center> |         | Parameters for conversion boosters |
+
 See [an example payload and response](/examples#create)
 
 #### Response body
@@ -1133,7 +1323,7 @@ The form field values are rendered as hidden `<input>` elements in the form. See
 | `mobile`     | Mobile payment methods: Pivo, Siirto, MobilePay                            |
 | `bank`       | Bank payment methods                                                       |
 | `creditcard` | Visa, MasterCard, American Express                                         |
-| `credit`     | Instalment and invoice payment methods: OP Lasku, Walley, Jousto, AfterPay |
+| `credit`     | Instalment and invoice payment methods: Klarna, OP Lasku, Walley, Jousto, AfterPay |
 
 ##### PaymentMethodGroupData
 
