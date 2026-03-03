@@ -884,7 +884,7 @@ If the flow fails due to issues with the card itself (insufficient funds, fraud 
 
 ### Manually activating payments
 
-For certain payment methods (Klarna and Walley B2C/B2B), you can activate the payment at a later time, for example for pre-ordered products.
+For Klarna and Walley B2C/B2B, you can activate the payment at a later time, for example for pre-ordered products.
 Activation window:
 
 - Klarna: up to 28 days
@@ -922,10 +922,10 @@ Refer to [create payment request body section](#create-payment)
 
 Deprecated endpoint `HTTP POST /payments/{transactionId}/activate-invoice`
 
-Sending a capture-order request changes the payment status to `accepted` and:
+Sending a capture-order request changes the payment status to `accepted` and with:
 
-- With Klarna, issues a charge for the authorization hold
-- With Walley, activates the invoice
+- Klarna, issues a charge for the authorization hold
+- Walley, activates the invoice
 
 ##### Request
 
@@ -1323,7 +1323,7 @@ The form field values are rendered as hidden `<input>` elements in the form. See
 | `mobile`     | Mobile payment methods: Pivo, Siirto, MobilePay                            |
 | `bank`       | Bank payment methods                                                       |
 | `creditcard` | Visa, MasterCard, American Express                                         |
-| `credit`     | Instalment and invoice payment methods: Klarna, OP Lasku, Walley, Jousto, AfterPay |
+| `credit`     | Instalment and invoice payment methods: Klarna, OP Lasku, Walley |
 
 ##### PaymentMethodGroupData
 
